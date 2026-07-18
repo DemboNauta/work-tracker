@@ -40,8 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# datos locales (sqlite + nominas)
-data/
+# datos locales (sqlite + nominas) — solo el dir raiz, no el paquete Kotlin android/.../data
+/data/
 
 # script de deploy: contiene IP/usuario/dominio del VPS - fuera del repo
 deploy.ps1
