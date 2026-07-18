@@ -154,7 +154,7 @@ class WeekWidget : GlanceAppWidget() {
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(vertical = 5.dp)
+                .padding(vertical = 8.dp)
                 .background(ColorProvider(rowBg))
                 .cornerRadius(12.dp)
                 .padding(horizontal = 10.dp, vertical = 9.dp),
@@ -172,6 +172,7 @@ class WeekWidget : GlanceAppWidget() {
                 Text(
                     text = dayNum,
                     style = TextStyle(color = ColorProvider(Muted), fontSize = 10.sp),
+                    modifier = GlanceModifier.padding(top = 2.dp),
                 )
             }
             if (day.segments.isEmpty()) {

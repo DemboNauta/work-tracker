@@ -48,8 +48,12 @@ class Repository(context: Context) {
       ?: cachedWeek()?.weekStart
       ?: LocalDate.now().toString()
     val newAnchor = LocalDate.parse(base).plusWeeks(deltaWeeks.toLong()).toString()
+    // Solo persistimos el ancla si la descarga tiene éxito: si falla, el ancla
+    // y la semana cacheada (lo que realmente se pinta) se desincronizaban y el
+    // widget parecía "congelado" aunque se siguiera pulsando ‹ ›.
+    val week = refreshWeek(newAnchor)
     store.setWidgetAnchor(newAnchor)
-    return refreshWeek(newAnchor)
+    return week
   }
 
   /** Vuelve a la semana actual (quita el ancla) y refresca. */
