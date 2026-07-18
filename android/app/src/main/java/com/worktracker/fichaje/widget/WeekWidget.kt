@@ -17,6 +17,7 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -153,10 +154,10 @@ class WeekWidget : GlanceAppWidget() {
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(vertical = 3.dp)
+                .padding(vertical = 5.dp)
                 .background(ColorProvider(rowBg))
                 .cornerRadius(12.dp)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = 10.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = GlanceModifier.width(46.dp)) {
@@ -216,7 +217,7 @@ class PrevWeekAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         runCatching { Repository(context).shiftWidgetWeek(-1) }
-        WeekWidget().update(context, glanceId)
+        WeekWidget().updateAll(context)
     }
 }
 
@@ -228,6 +229,6 @@ class NextWeekAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         runCatching { Repository(context).shiftWidgetWeek(1) }
-        WeekWidget().update(context, glanceId)
+        WeekWidget().updateAll(context)
     }
 }
