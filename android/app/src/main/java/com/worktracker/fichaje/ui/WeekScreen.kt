@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -36,6 +38,8 @@ import com.worktracker.fichaje.data.rangeLabel
 import com.worktracker.fichaje.data.withLocalToday
 import com.worktracker.fichaje.widget.WidgetRefresh
 import kotlinx.coroutines.launch
+
+private const val WEB_APP_URL = "https://fichaje.cryptoaiarena.com/"
 
 @Composable
 fun WeekScreen(repo: Repository) {
@@ -111,6 +115,15 @@ fun WeekScreen(repo: Repository) {
 
         TextButton(onClick = { scope.launch { load() } }, enabled = !loading) {
             Text("Actualizar")
+        }
+        TextButton(onClick = {
+            runCatching {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(WEB_APP_URL))
+                )
+            }
+        }) {
+            Text("Abrir en el navegador")
         }
         Button(onClick = { scope.launch { repo.logout() } }) {
             Text("Cerrar sesión")
