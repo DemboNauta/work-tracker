@@ -2,6 +2,7 @@ package com.worktracker.fichaje.widget
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -43,12 +44,13 @@ import com.worktracker.fichaje.data.withLocalToday
 import com.worktracker.fichaje.ui.MainActivity
 
 private val Graphite = Color(0xFF16171A)
-private val Surface = Color(0xFF23262B)
-private val SurfaceHi = Color(0xFF2F333A)
+private val Surface = Color(0xFF2C3038)
+private val SurfaceHi = Color(0xFF3A3F49)
 private val Amber = Color(0xFFE8A33D)
 private val AmberDim = Color(0x2BE8A33D)
 private val OnSurface = Color(0xFFECECEC)
 private val Muted = Color(0xFF8A8D93)
+private val ErrorRed = Color(0xFFE05B4F)
 
 /**
  * Widget vertical: cabecera con navegación de semanas (‹ ›) y una lista de días
@@ -57,13 +59,15 @@ private val Muted = Color(0xFF8A8D93)
 class WeekWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val week = AuthStore(context).cachedWeekNow()?.withLocalToday()
+        val store = AuthStore(context)
+        val week = store.cachedWeekNow()?.withLocalToday()
+        val error = store.widgetErrorNow()
         val openApp = Intent(context, MainActivity::class.java)
-        provideContent { Content(week, openApp) }
+        provideContent { Content(week, error, openApp) }
     }
 
     @Composable
-    private fun Content(week: WeekResponse?, openApp: Intent) {
+    private fun Content(week: WeekResponse?, error: String?, openApp: Intent) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -71,7 +75,7 @@ class WeekWidget : GlanceAppWidget() {
                 .cornerRadius(18.dp)
                 .padding(12.dp),
         ) {
-            Header(week, openApp)
+            Header(week, error, openApp)
             if (week == null || week.days.isEmpty()) {
                 Box(
                     modifier = GlanceModifier.fillMaxSize().padding(top = 16.dp),
@@ -91,34 +95,48 @@ class WeekWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun Header(week: WeekResponse?, openApp: Intent) {
-        Row(
-            modifier = GlanceModifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            NavButton("‹", actionRunCallback<PrevWeekAction>())
-            Column(
-                modifier = GlanceModifier.defaultWeight()
-                    .clickable(actionStartActivity(openApp)),
-                horizontalAlignment = Alignment.CenterHorizontally,
+    private fun Header(week: WeekResponse?, error: String?, openApp: Intent) {
+        Column(modifier = GlanceModifier.fillMaxWidth()) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                NavButton("‹", actionRunCallback<PrevWeekAction>())
+                Column(
+                    modifier = GlanceModifier.defaultWeight()
+                        .clickable(actionStartActivity(openApp)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = week?.rangeLabel()?.ifEmpty { "Fichaje" } ?: "Fichaje",
+                        style = TextStyle(
+                            color = ColorProvider(Amber),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
+                    if (week != null) {
+                        Text(
+                            text = "Total ${fmtMin(week.weekTotalMin)}",
+                            style = TextStyle(color = ColorProvider(Muted), fontSize = 11.sp),
+                        )
+                    }
+                }
+                NavButton("›", actionRunCallback<NextWeekAction>())
+            }
+            if (error != null) {
                 Text(
-                    text = week?.rangeLabel()?.ifEmpty { "Fichaje" } ?: "Fichaje",
+                    text = "⚠ $error",
+                    maxLines = 2,
                     style = TextStyle(
-                        color = ColorProvider(Amber),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        color = ColorProvider(ErrorRed),
+                        fontSize = 10.sp,
                         textAlign = TextAlign.Center,
                     ),
+                    modifier = GlanceModifier.fillMaxWidth().padding(top = 4.dp),
                 )
-                if (week != null) {
-                    Text(
-                        text = "Total ${fmtMin(week.weekTotalMin)}",
-                        style = TextStyle(color = ColorProvider(Muted), fontSize = 11.sp),
-                    )
-                }
             }
-            NavButton("›", actionRunCallback<NextWeekAction>())
         }
     }
 
@@ -154,7 +172,7 @@ class WeekWidget : GlanceAppWidget() {
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 12.dp)
                 .background(ColorProvider(rowBg))
                 .cornerRadius(12.dp)
                 .padding(horizontal = 10.dp, vertical = 9.dp),
@@ -210,16 +228,27 @@ class WeekWidget : GlanceAppWidget() {
     }
 }
 
+/** Ejecuta el desplazamiento de semana y deja constancia de si falló, en vez de
+ *  tragarse el error en silencio (así se ve en el propio widget por qué la
+ *  semana se queda "congelada" si la red falla). */
+private suspend fun shiftAndReport(context: Context, deltaWeeks: Int) {
+    val repo = Repository(context)
+    runCatching { repo.shiftWidgetWeek(deltaWeeks) }
+        .onSuccess { repo.store.setWidgetError(null) }
+        .onFailure { e ->
+            Log.e("WeekWidget", "shiftWidgetWeek($deltaWeeks) failed", e)
+            repo.store.setWidgetError(e.message ?: e::class.java.simpleName)
+        }
+    WeekWidget().updateAll(context)
+}
+
 /** ‹ semana anterior. */
 class PrevWeekAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
-    ) {
-        runCatching { Repository(context).shiftWidgetWeek(-1) }
-        WeekWidget().updateAll(context)
-    }
+    ) = shiftAndReport(context, -1)
 }
 
 /** › semana siguiente. */
@@ -228,8 +257,5 @@ class NextWeekAction : ActionCallback {
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
-    ) {
-        runCatching { Repository(context).shiftWidgetWeek(1) }
-        WeekWidget().updateAll(context)
-    }
+    ) = shiftAndReport(context, 1)
 }

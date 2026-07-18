@@ -27,6 +27,9 @@ class AuthStore(private val context: Context) {
         val WEEK_JSON = stringPreferencesKey("week_json")
         // Fecha ancla de la semana que muestra el widget (null = semana actual).
         val WIDGET_ANCHOR = stringPreferencesKey("widget_anchor")
+        // Último error al navegar/refrescar el widget (null = sin error), para
+        // poder verlo en el propio widget sin depender de logcat.
+        val WIDGET_ERROR = stringPreferencesKey("widget_error")
     }
 
     val baseUrl: Flow<String> =
@@ -57,6 +60,15 @@ class AuthStore(private val context: Context) {
     suspend fun setWidgetAnchor(date: String?) {
         context.dataStore.edit {
             if (date == null) it.remove(Keys.WIDGET_ANCHOR) else it[Keys.WIDGET_ANCHOR] = date
+        }
+    }
+
+    suspend fun widgetErrorNow(): String? =
+        context.dataStore.data.first()[Keys.WIDGET_ERROR]
+
+    suspend fun setWidgetError(message: String?) {
+        context.dataStore.edit {
+            if (message == null) it.remove(Keys.WIDGET_ERROR) else it[Keys.WIDGET_ERROR] = message
         }
     }
 
