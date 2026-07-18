@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Chivo_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -27,12 +28,20 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${archivo.variable} ${chivoMono.variable} dark h-full antialiased`}
+      className={`${archivo.variable} ${chivoMono.variable} h-full antialiased`}
       style={{ ["--font-sans" as string]: "var(--font-archivo)" }}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <Toaster position="top-center" richColors />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster position="top-center" richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

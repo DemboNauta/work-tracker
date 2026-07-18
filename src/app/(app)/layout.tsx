@@ -4,6 +4,7 @@ import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { NavLinks } from "@/components/nav-links";
 import { BottomNav } from "@/components/bottom-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function AppLayout({
   children,
@@ -24,6 +25,7 @@ export default async function AppLayout({
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="text-sm text-muted-foreground">{user.name}</span>
+            <ThemeToggle />
             <form action={logout}>
               <Button variant="outline" size="sm" type="submit">
                 Salir
