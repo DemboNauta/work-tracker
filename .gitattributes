@@ -1,0 +1,8 @@
+# Gradle wrapper: script debe conservar LF (se ejecuta en Linux/CI),
+# el .bat CRLF, y el .jar es binario (no normalizar nunca).
+android/gradlew text eol=lf
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.apk binary
+*.traineddata binary

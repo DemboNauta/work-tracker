@@ -45,3 +45,12 @@ data/
 
 # script de deploy: contiene IP/usuario/dominio del VPS - fuera del repo
 deploy.ps1
+
+# Android (build artifacts; el proyecto vive en android/)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk
+*.aab

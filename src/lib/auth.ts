@@ -24,12 +24,17 @@ export function getSecret(): Uint8Array {
 export const SESSION_COOKIE = "wt_session";
 const SESSION_DAYS = 30;
 
-export async function createSession(userId: number) {
-  const token = await new SignJWT({ sub: String(userId) })
+/** Firma un JWT de sesión (sub = userId). Compartido por cookie web y API móvil. */
+export async function signToken(userId: number): Promise<string> {
+  return new SignJWT({ sub: String(userId) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
     .sign(getSecret());
+}
+
+export async function createSession(userId: number) {
+  const token = await signToken(userId);
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -63,6 +68,25 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   const rows = await db.select().from(users).where(eq(users.id, userId));
   return rows[0] ?? null;
 });
+
+/**
+ * Autentica una petición de API por cabecera `Authorization: Bearer <jwt>`.
+ * No usa cookies (pensado para clientes nativos). Devuelve el usuario o null.
+ */
+export async function authenticateBearer(req: Request): Promise<User | null> {
+  const header = req.headers.get("authorization") ?? "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) return null;
+  try {
+    const { payload } = await jwtVerify(match[1], getSecret());
+    const userId = payload.sub ? Number(payload.sub) : null;
+    if (userId == null || Number.isNaN(userId)) return null;
+    const rows = await db.select().from(users).where(eq(users.id, userId));
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /** Redirige a /login si no hay sesión válida. */
 export async function requireUser(): Promise<User> {

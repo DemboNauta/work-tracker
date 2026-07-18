@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="graphite">#17181A</color>
+    <color name="surface">#202225</color>
+    <color name="amber">#E8A33D</color>
+    <color name="on_surface">#ECECEC</color>
+</resources>
