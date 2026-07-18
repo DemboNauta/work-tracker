@@ -1,26 +1,176 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Tema "reloj de fichar": grafito nocturno + ámbar señal */
+:root {
+  --background: oklch(0.16 0.014 260);
+  --foreground: oklch(0.94 0.008 85);
+  --card: oklch(0.2 0.016 258);
+  --card-foreground: oklch(0.94 0.008 85);
+  --popover: oklch(0.2 0.016 258);
+  --popover-foreground: oklch(0.94 0.008 85);
+  --primary: oklch(0.82 0.155 80);
+  --primary-foreground: oklch(0.2 0.03 80);
+  --secondary: oklch(0.26 0.018 258);
+  --secondary-foreground: oklch(0.94 0.008 85);
+  --muted: oklch(0.24 0.016 258);
+  --muted-foreground: oklch(0.68 0.014 250);
+  --accent: oklch(0.27 0.02 258);
+  --accent-foreground: oklch(0.94 0.008 85);
+  --destructive: oklch(0.68 0.2 25);
+  --border: oklch(0.94 0.01 85 / 12%);
+  --input: oklch(0.94 0.01 85 / 15%);
+  --ring: oklch(0.82 0.155 80 / 60%);
+  --chart-1: oklch(0.82 0.155 80);
+  --chart-2: oklch(0.72 0.12 300);
+  --chart-3: oklch(0.72 0.19 25);
+  --chart-4: oklch(0.75 0.13 160);
+  --chart-5: oklch(0.6 0.02 258);
+  --radius: 0.375rem;
+  --sidebar: oklch(0.18 0.015 259);
+  --sidebar-foreground: oklch(0.94 0.008 85);
+  --sidebar-primary: oklch(0.82 0.155 80);
+  --sidebar-primary-foreground: oklch(0.2 0.03 80);
+  --sidebar-accent: oklch(0.26 0.018 258);
+  --sidebar-accent-foreground: oklch(0.94 0.008 85);
+  --sidebar-border: oklch(0.94 0.01 85 / 10%);
+  --sidebar-ring: oklch(0.82 0.155 80 / 60%);
+  /* Colores semánticos del dominio */
+  --night: oklch(0.72 0.12 300);
+  --complementary: oklch(0.72 0.19 25);
+  --ok: oklch(0.75 0.13 160);
+}
+
+.dark {
+  --background: oklch(0.16 0.014 260);
+  --foreground: oklch(0.94 0.008 85);
+}
+
+@theme inline {
+  --color-night: var(--night);
+  --color-complementary: var(--complementary);
+  --color-ok: var(--ok);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Trama de perforaciones de ficha, muy sutil */
+    background-image: radial-gradient(
+      oklch(0.94 0.01 85 / 3.5%) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Cifras tabulares para todas las horas y contadores */
+  .tnum {
+    font-family: var(--font-chivo-mono), var(--font-geist-mono), monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .display-heading {
+    font-family: var(--font-archivo), var(--font-sans), sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  /* Borde superior perforado, como el troquel de una ficha */
+  .punch-edge {
+    position: relative;
+  }
+  .punch-edge::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 8px;
+    background-image: radial-gradient(
+      circle at 8px 4px,
+      var(--background) 2.5px,
+      transparent 3px
+    );
+    background-size: 16px 8px;
+    background-repeat: repeat-x;
+    pointer-events: none;
+  }
+  @keyframes stamp-in {
+    0% {
+      opacity: 0;
+      transform: scale(1.06);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(0.99);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .stamp-in {
+    animation: stamp-in 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  /* Oculta la barra de scroll (ruedas de hora) */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# datos locales (sqlite + nominas)
+data/
+
+# script de deploy: contiene IP/usuario/dominio del VPS - fuera del repo
+deploy.ps1
