@@ -52,6 +52,15 @@ function createDb() {
     CREATE UNIQUE INDEX IF NOT EXISTS payrolls_unique_month
       ON payrolls (user_id, year, month);
   `);
+
+  // Migraciones idempotentes para BDs preexistentes
+  const settingsCols = sqlite
+    .prepare("PRAGMA table_info(settings)")
+    .all() as { name: string }[];
+  if (!settingsCols.some((c) => c.name === "payroll_pdf_password")) {
+    sqlite.exec("ALTER TABLE settings ADD COLUMN payroll_pdf_password TEXT");
+  }
+
   return drizzle(sqlite, { schema });
 }
 

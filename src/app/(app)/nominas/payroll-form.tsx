@@ -23,7 +23,11 @@ const MONTHS_ES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
-export function PayrollForm() {
+export function PayrollForm({
+  hasSavedPassword = false,
+}: {
+  hasSavedPassword?: boolean;
+}) {
   const [state, action, pending] = useActionState(uploadPayroll, initial);
   const [formKey, setFormKey] = useState(0);
 
@@ -94,6 +98,28 @@ export function PayrollForm() {
               accept="application/pdf,image/jpeg,image/png,image/webp"
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="payroll-pdf-password">
+              Contraseña del PDF (si tiene)
+            </Label>
+            <Input
+              id="payroll-pdf-password"
+              name="pdfPassword"
+              type="password"
+              autoComplete="off"
+              placeholder={
+                hasSavedPassword ? "Se usará la guardada" : "Solo si el PDF está protegido"
+              }
+            />
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                name="rememberPassword"
+                className="size-4 accent-primary"
+              />
+              Recordar esta contraseña para próximas nóminas
+            </label>
           </div>
           {state.error && (
             <Alert variant="destructive">

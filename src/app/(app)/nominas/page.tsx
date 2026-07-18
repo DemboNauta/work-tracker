@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { payrolls } from "@/lib/db/schema";
+import { payrolls, settings } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,12 @@ export default async function NominasPage() {
     .where(eq(payrolls.userId, user.id))
     .orderBy(desc(payrolls.year), desc(payrolls.month));
 
+  const [setting] = await db
+    .select({ pw: settings.payrollPdfPassword })
+    .from(settings)
+    .where(eq(settings.userId, user.id));
+  const hasSavedPassword = !!setting?.pw;
+
   return (
     <div className="space-y-8">
       <div>
@@ -40,7 +46,7 @@ export default async function NominasPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
-        <PayrollForm />
+        <PayrollForm hasSavedPassword={hasSavedPassword} />
 
         <Card>
           <CardHeader>

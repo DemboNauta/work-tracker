@@ -6,8 +6,10 @@ import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
 import { db, UPLOADS_DIR } from "@/lib/db";
-import { payrolls } from "@/lib/db/schema";
+import { payrolls, settings } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
+import { decryptPdf } from "@/lib/pdf";
+import { encryptSecret, decryptSecret } from "@/lib/crypto";
 
 export interface PayrollState {
   error?: string;
@@ -45,14 +47,32 @@ export async function uploadPayroll(
   const monthNum = Number(m[2]);
   if (monthNum < 1 || monthNum > 12) return { error: "Mes no válido." };
 
+  let bytes: Buffer = Buffer.from(await file.arrayBuffer());
+
+  // PDFs con contraseña: descifrar al subir para guardarlos desbloqueados.
+  const rememberPassword = formData.get("rememberPassword") != null;
+  let passwordToRemember: string | null = null;
+  if (file.type === "application/pdf") {
+    const typed = String(formData.get("pdfPassword") ?? "").trim();
+    const saved = typed ? null : await getSavedPdfPassword(user.id);
+    const password = typed || saved || undefined;
+
+    const res = decryptPdf(bytes, password);
+    if (res.ok === "needs-password") {
+      return { error: "Este PDF tiene contraseña. Introdúcela para guardarlo." };
+    }
+    if (res.ok === "wrong-password") {
+      return { error: "Contraseña del PDF incorrecta." };
+    }
+    bytes = res.data;
+    if (rememberPassword && typed) passwordToRemember = typed;
+  }
+
   const ext = path.extname(file.name) || ".pdf";
   const storedName = `${user.id}-${year}-${String(monthNum).padStart(2, "0")}-${crypto
     .randomBytes(6)
     .toString("hex")}${ext}`;
-  await fs.writeFile(
-    path.join(UPLOADS_DIR, storedName),
-    Buffer.from(await file.arrayBuffer())
-  );
+  await fs.writeFile(path.join(UPLOADS_DIR, storedName), bytes);
 
   // Una nómina por mes: reemplaza la existente
   const [previous] = await db
@@ -77,11 +97,31 @@ export async function uploadPayroll(
     fileName: file.name,
     storedName,
     mimeType: file.type,
-    size: file.size,
+    size: bytes.length,
   });
+
+  if (passwordToRemember) {
+    const enc = encryptSecret(passwordToRemember);
+    await db
+      .insert(settings)
+      .values({ userId: user.id, payrollPdfPassword: enc })
+      .onConflictDoUpdate({
+        target: settings.userId,
+        set: { payrollPdfPassword: enc },
+      });
+  }
 
   revalidatePath("/nominas");
   return { ok: true };
+}
+
+/** Contraseña de PDF guardada por el usuario (descifrada), o null. */
+async function getSavedPdfPassword(userId: number): Promise<string | null> {
+  const [row] = await db
+    .select({ pw: settings.payrollPdfPassword })
+    .from(settings)
+    .where(eq(settings.userId, userId));
+  return row?.pw ? decryptSecret(row.pw) : null;
 }
 
 export async function deletePayroll(id: number): Promise<void> {

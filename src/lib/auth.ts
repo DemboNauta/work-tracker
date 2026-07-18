@@ -100,6 +100,7 @@ export const DEFAULT_SETTINGS: Omit<Settings, "userId"> = {
   annualLimitMin: 720 * 60,
   nightStartMin: 22 * 60,
   nightEndMin: 6 * 60,
+  payrollPdfPassword: null,
 };
 
 export async function getUserSettings(userId: number): Promise<Settings> {

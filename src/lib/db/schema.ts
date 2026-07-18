@@ -24,6 +24,8 @@ export const settings = sqliteTable("settings", {
   // Ventana nocturna en minutos desde medianoche (22:00 → 06:00)
   nightStartMin: integer("night_start_min").notNull().default(22 * 60),
   nightEndMin: integer("night_end_min").notNull().default(6 * 60),
+  // Contraseña por defecto para PDFs de nómina, cifrada en reposo (ver lib/crypto)
+  payrollPdfPassword: text("payroll_pdf_password"),
 });
 
 export const shifts = sqliteTable(
