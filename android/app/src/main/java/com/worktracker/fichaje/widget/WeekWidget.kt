@@ -1,5 +1,6 @@
 package com.worktracker.fichaje.widget
 
+import android.content.ComponentName
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -44,17 +45,18 @@ class WeekWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: androidx.glance.GlanceId) {
         // isToday recalculado en cliente por si cambió el día sin refetch.
         val week = AuthStore(context).cachedWeekNow()?.withLocalToday()
-        provideContent { Content(week) }
+        val openApp = ComponentName(context, MainActivity::class.java)
+        provideContent { Content(week, openApp) }
     }
 
     @Composable
-    private fun Content(week: WeekResponse?) {
+    private fun Content(week: WeekResponse?, openApp: ComponentName) {
         Column(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .background(ColorProvider(Graphite))
                 .padding(10.dp)
-                .clickable(actionStartActivity<MainActivity>()),
+                .clickable(actionStartActivity(openApp)),
         ) {
             Row(
                 modifier = GlanceModifier.fillMaxWidth().padding(bottom = 6.dp),

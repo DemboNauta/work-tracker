@@ -1,6 +1,7 @@
 package com.worktracker.fichaje.widget
 
 import android.content.Context
+import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
