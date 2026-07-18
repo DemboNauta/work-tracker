@@ -32,6 +32,13 @@ class Repository(context: Context) {
 
     suspend fun cachedWeek(): WeekResponse? = store.cachedWeekNow()
 
+  /** Turnos en un rango, para sincronizar con el calendario. */
+  suspend fun getShifts(from: String, to: String): ShiftsResponse {
+    val token = store.tokenNow() ?: error("Sin sesión")
+    val api = ApiFactory.create(store.baseUrlNow())
+    return api.shifts("Bearer $token", from, to)
+  }
+
   /** Refresca la semana anclada actualmente (o la actual si no hay ancla). */
   suspend fun refreshAnchoredWeek(): WeekResponse = refreshWeek(store.widgetAnchorNow())
 

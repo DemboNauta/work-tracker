@@ -1,6 +1,8 @@
 package com.worktracker.fichaje.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
@@ -8,6 +10,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
@@ -15,16 +18,22 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
+import com.worktracker.fichaje.calendar.CalendarSync
 import com.worktracker.fichaje.data.AuthStore
 import com.worktracker.fichaje.data.Repository
 import com.worktracker.fichaje.widget.WidgetRefresh
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 private const val BASE_URL = "https://fichaje.cryptoaiarena.com/"
 
@@ -53,6 +62,12 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             filePathCallback?.onReceiveValue(if (uri != null) arrayOf(uri) else null)
             filePathCallback = null
+        }
+
+    private val calendarPerms: ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            if (result.values.all { it }) chooseCalendarAndSync()
+            else toast("Permiso de calendario denegado")
         }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -120,7 +135,21 @@ class MainActivity : ComponentActivity() {
         // Descargas directas (Content-Disposition attachment) como red de seguridad.
         webView.setDownloadListener { url, _, _, _, _ -> downloadWithCookie(url) }
 
-        setContentView(webView)
+        // WebView a pantalla completa + botón flotante para sincronizar el calendario.
+        val root = FrameLayout(this)
+        root.addView(webView)
+        val syncButton = Button(this).apply {
+            text = "📅 Calendar"
+            setOnClickListener { startCalendarSync() }
+            val m = (16 * resources.displayMetrics.density).toInt()
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM or Gravity.END,
+            ).apply { setMargins(0, 0, m, m) }
+        }
+        root.addView(syncButton)
+        setContentView(root)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -145,6 +174,51 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         handler.removeCallbacks(cookiePoll)
         CookieManager.getInstance().flush()
+    }
+
+    // ---- Sincronización con Google Calendar (vía proveedor de calendario del dispositivo) ----
+
+    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+
+    private fun startCalendarSync() {
+        if (CalendarSync.hasPermissions(this)) {
+            chooseCalendarAndSync()
+        } else {
+            calendarPerms.launch(
+                arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
+            )
+        }
+    }
+
+    private fun chooseCalendarAndSync() {
+        val cals = CalendarSync(this).availableCalendars()
+        when {
+            cals.isEmpty() -> toast("No hay calendarios donde escribir. Añade una cuenta de Google.")
+            cals.size == 1 -> runCalendarSync(cals[0].id)
+            else -> {
+                val labels = cals.map { "${it.displayName}\n${it.accountName}" }.toTypedArray()
+                AlertDialog.Builder(this)
+                    .setTitle("Elige calendario")
+                    .setItems(labels) { _, i -> runCalendarSync(cals[i].id) }
+                    .show()
+            }
+        }
+    }
+
+    private fun runCalendarSync(calendarId: Long) {
+        toast("Sincronizando turnos…")
+        lifecycleScope.launch {
+            try {
+                val today = LocalDate.now()
+                val resp = repo.getShifts(today.toString(), today.plusWeeks(4).toString())
+                val res = withContext(Dispatchers.IO) {
+                    CalendarSync(this@MainActivity).sync(calendarId, resp.days)
+                }
+                toast("Calendario: ${res.inserted} nuevos, ${res.updated} actualizados")
+            } catch (e: Exception) {
+                toast("No se pudo sincronizar. Inicia sesión en la app primero.")
+            }
+        }
     }
 
     /** Encola una descarga en Descargas incluyendo la cookie wt_session. */

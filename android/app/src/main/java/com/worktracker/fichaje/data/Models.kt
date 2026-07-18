@@ -25,6 +25,16 @@ data class DayDto(
 )
 
 @Serializable
+data class RangeDay(val date: String, val segments: List<SegmentDto> = emptyList())
+
+@Serializable
+data class ShiftsResponse(
+    val from: String? = null,
+    val to: String? = null,
+    val days: List<RangeDay> = emptyList(),
+)
+
+@Serializable
 data class WeekResponse(
     val weekStart: String? = null,
     val days: List<DayDto> = emptyList(),

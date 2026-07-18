@@ -20,6 +20,13 @@ interface ApiService {
         @Header("Authorization") bearer: String,
         @Query("date") date: String? = null,
     ): WeekResponse
+
+    @GET("api/mobile/shifts")
+    suspend fun shifts(
+        @Header("Authorization") bearer: String,
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null,
+    ): ShiftsResponse
 }
 
 object ApiFactory {

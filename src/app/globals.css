@@ -48,8 +48,49 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Tema "reloj de fichar": grafito nocturno + ámbar señal */
+/* Tema "reloj de fichar": grafito nocturno + ámbar señal.
+   :root = claro · .dark = oscuro. El radius vive en :root (no depende del tema). */
 :root {
+  --radius: 0.375rem;
+
+  --background: oklch(0.98 0.006 85);
+  --foreground: oklch(0.24 0.02 260);
+  --card: oklch(0.995 0.003 85);
+  --card-foreground: oklch(0.24 0.02 260);
+  --popover: oklch(0.995 0.003 85);
+  --popover-foreground: oklch(0.24 0.02 260);
+  --primary: oklch(0.7 0.16 72);
+  --primary-foreground: oklch(0.22 0.03 80);
+  --secondary: oklch(0.94 0.008 85);
+  --secondary-foreground: oklch(0.28 0.02 260);
+  --muted: oklch(0.95 0.006 85);
+  --muted-foreground: oklch(0.48 0.016 260);
+  --accent: oklch(0.93 0.012 85);
+  --accent-foreground: oklch(0.28 0.02 260);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.24 0.02 260 / 14%);
+  --input: oklch(0.24 0.02 260 / 20%);
+  --ring: oklch(0.7 0.16 72 / 55%);
+  --chart-1: oklch(0.7 0.16 72);
+  --chart-2: oklch(0.55 0.16 300);
+  --chart-3: oklch(0.58 0.2 25);
+  --chart-4: oklch(0.55 0.14 160);
+  --chart-5: oklch(0.6 0.02 258);
+  --sidebar: oklch(0.96 0.006 85);
+  --sidebar-foreground: oklch(0.24 0.02 260);
+  --sidebar-primary: oklch(0.7 0.16 72);
+  --sidebar-primary-foreground: oklch(0.22 0.03 80);
+  --sidebar-accent: oklch(0.93 0.012 85);
+  --sidebar-accent-foreground: oklch(0.28 0.02 260);
+  --sidebar-border: oklch(0.24 0.02 260 / 12%);
+  --sidebar-ring: oklch(0.7 0.16 72 / 55%);
+  /* Colores semánticos del dominio (tonos más profundos para contraste en claro) */
+  --night: oklch(0.5 0.16 300);
+  --complementary: oklch(0.55 0.2 25);
+  --ok: oklch(0.5 0.14 160);
+}
+
+.dark {
   --background: oklch(0.16 0.014 260);
   --foreground: oklch(0.94 0.008 85);
   --card: oklch(0.2 0.016 258);
@@ -73,7 +114,6 @@
   --chart-3: oklch(0.72 0.19 25);
   --chart-4: oklch(0.75 0.13 160);
   --chart-5: oklch(0.6 0.02 258);
-  --radius: 0.375rem;
   --sidebar: oklch(0.18 0.015 259);
   --sidebar-foreground: oklch(0.94 0.008 85);
   --sidebar-primary: oklch(0.82 0.155 80);
@@ -82,15 +122,9 @@
   --sidebar-accent-foreground: oklch(0.94 0.008 85);
   --sidebar-border: oklch(0.94 0.01 85 / 10%);
   --sidebar-ring: oklch(0.82 0.155 80 / 60%);
-  /* Colores semánticos del dominio */
   --night: oklch(0.72 0.12 300);
   --complementary: oklch(0.72 0.19 25);
   --ok: oklch(0.75 0.13 160);
-}
-
-.dark {
-  --background: oklch(0.16 0.014 260);
-  --foreground: oklch(0.94 0.008 85);
 }
 
 @theme inline {
@@ -107,7 +141,7 @@
     @apply bg-background text-foreground;
     /* Trama de perforaciones de ficha, muy sutil */
     background-image: radial-gradient(
-      oklch(0.94 0.01 85 / 3.5%) 1px,
+      oklch(0.5 0.02 260 / 5%) 1px,
       transparent 1px
     );
     background-size: 22px 22px;
