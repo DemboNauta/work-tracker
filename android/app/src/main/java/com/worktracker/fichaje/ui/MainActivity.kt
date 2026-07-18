@@ -178,7 +178,8 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             repo.store.setToken(token)
             if (token != null) {
-                runCatching { repo.refreshWeek() }
+                // Abrir la app siempre muestra la semana actual.
+                runCatching { repo.resetWidgetToCurrent() }
                 WidgetRefresh.update(this@MainActivity)
                 WidgetRefresh.enqueuePeriodic(this@MainActivity)
             } else {

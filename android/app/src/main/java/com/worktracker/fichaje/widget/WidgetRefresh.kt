@@ -41,7 +41,7 @@ class RefreshWorker(
         // Sin sesión: nada que hacer, no reintentar.
         if (repo.store.tokenNow().isNullOrEmpty()) return Result.success()
         return try {
-            repo.refreshWeek()
+            repo.refreshAnchoredWeek()
             WeekWidget().updateAll(applicationContext)
             Result.success()
         } catch (e: Exception) {

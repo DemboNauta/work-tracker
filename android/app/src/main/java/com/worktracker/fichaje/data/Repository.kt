@@ -31,4 +31,23 @@ class Repository(context: Context) {
     }
 
     suspend fun cachedWeek(): WeekResponse? = store.cachedWeekNow()
+
+  /** Refresca la semana anclada actualmente (o la actual si no hay ancla). */
+  suspend fun refreshAnchoredWeek(): WeekResponse = refreshWeek(store.widgetAnchorNow())
+
+  /** Mueve el widget deltaWeeks semanas (±1) y refresca. */
+  suspend fun shiftWidgetWeek(deltaWeeks: Int): WeekResponse {
+    val base = store.widgetAnchorNow()
+      ?: cachedWeek()?.weekStart
+      ?: LocalDate.now().toString()
+    val newAnchor = LocalDate.parse(base).plusWeeks(deltaWeeks.toLong()).toString()
+    store.setWidgetAnchor(newAnchor)
+    return refreshWeek(newAnchor)
+  }
+
+  /** Vuelve a la semana actual (quita el ancla) y refresca. */
+  suspend fun resetWidgetToCurrent(): WeekResponse {
+    store.setWidgetAnchor(null)
+    return refreshWeek(null)
+  }
 }
