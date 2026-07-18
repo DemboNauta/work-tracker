@@ -26,6 +26,7 @@ import com.worktracker.fichaje.data.AuthStore
 import com.worktracker.fichaje.data.DayDto
 import com.worktracker.fichaje.data.WeekResponse
 import com.worktracker.fichaje.data.fmtMin
+import com.worktracker.fichaje.data.fmtTime
 import com.worktracker.fichaje.data.rangeLabel
 import com.worktracker.fichaje.data.withLocalToday
 import com.worktracker.fichaje.ui.MainActivity
@@ -103,7 +104,7 @@ class WeekWidget : GlanceAppWidget() {
             modifier = modifier
                 .padding(horizontal = 2.dp)
                 .background(ColorProvider(bg))
-                .padding(vertical = 6.dp),
+                .padding(vertical = 6.dp, horizontal = 1.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
@@ -114,15 +115,44 @@ class WeekWidget : GlanceAppWidget() {
                     fontSize = 11.sp,
                     textAlign = TextAlign.Center,
                 ),
+                modifier = GlanceModifier.padding(bottom = 3.dp),
             )
-            Text(
-                text = if (day.totalMin > 0) fmtMin(day.totalMin) else "·",
-                style = TextStyle(
-                    color = ColorProvider(fg),
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center,
-                ),
-            )
+            if (day.segments.isEmpty()) {
+                Text(
+                    text = "·",
+                    style = TextStyle(
+                        color = ColorProvider(fg),
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                    ),
+                )
+            } else {
+                // Un mini-bloque por turno: inicio arriba, fin debajo.
+                day.segments.forEach { seg ->
+                    Column(
+                        modifier = GlanceModifier.padding(top = 2.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = fmtTime(seg.startMin),
+                            style = TextStyle(
+                                color = ColorProvider(fg),
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Center,
+                            ),
+                        )
+                        Text(
+                            text = fmtTime(seg.endMin),
+                            style = TextStyle(
+                                color = ColorProvider(fg),
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Center,
+                            ),
+                        )
+                    }
+                }
+            }
         }
     }
 }

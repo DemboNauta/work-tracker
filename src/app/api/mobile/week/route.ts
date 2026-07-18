@@ -1,5 +1,5 @@
 import { authenticateBearer, getUserSettings } from "@/lib/auth";
-import { getDashboardData, limitsFrom } from "@/lib/queries";
+import { getDashboardData, getShiftsBetween, limitsFrom } from "@/lib/queries";
 import { formatDate } from "@/lib/hours";
 
 // Semana actual (o la de ?date=YYYY-MM-DD) para el widget/app Android.
@@ -19,6 +19,22 @@ export async function GET(req: Request) {
   const limits = limitsFrom(settings);
   const data = await getDashboardData(user.id, limits, today);
 
+  // Tramos por día (turnos) para el widget. Agrupa los shifts de la semana.
+  const weekStart = data.weekDays[0]?.date;
+  const weekEnd = data.weekDays[data.weekDays.length - 1]?.date;
+  const segsByDate = new Map<string, { startMin: number; endMin: number }[]>();
+  if (weekStart && weekEnd) {
+    const rows = await getShiftsBetween(user.id, weekStart, weekEnd);
+    for (const r of rows) {
+      const list = segsByDate.get(r.date) ?? [];
+      list.push({ startMin: r.startMin, endMin: r.endMin });
+      segsByDate.set(r.date, list);
+    }
+    for (const list of segsByDate.values()) {
+      list.sort((a, b) => a.startMin - b.startMin);
+    }
+  }
+
   return Response.json({
     weekStart: data.weekDays[0]?.date ?? null,
     days: data.weekDays.map((d) => ({
@@ -27,6 +43,7 @@ export async function GET(req: Request) {
       totalMin: d.totalMin,
       nightMin: d.nightMin,
       isToday: d.isToday,
+      segments: segsByDate.get(d.date) ?? [],
     })),
     weekTotalMin: data.week.totalMin,
     weekNightMin: data.week.nightMin,

@@ -2,6 +2,12 @@ package com.worktracker.fichaje.data
 
 import java.time.LocalDate
 
+/** Minutos desde medianoche → "HH:MM" (normaliza >24h). Portado de src/lib/hours.ts. */
+fun fmtTime(min: Int): String {
+    val norm = ((min % 1440) + 1440) % 1440
+    return "${(norm / 60).toString().padStart(2, '0')}:${(norm % 60).toString().padStart(2, '0')}"
+}
+
 /** Minutos → "8h 30m" (o "8h", o "0h"). Portado de src/lib/hours.ts. */
 fun fmtMin(min: Int): String {
     val abs = kotlin.math.abs(min)

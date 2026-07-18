@@ -12,12 +12,16 @@ data class UserDto(val id: Int, val name: String)
 data class LoginResponse(val token: String, val user: UserDto)
 
 @Serializable
+data class SegmentDto(val startMin: Int, val endMin: Int)
+
+@Serializable
 data class DayDto(
     val date: String,
     val weekdayShort: String,
     val totalMin: Int = 0,
     val nightMin: Int = 0,
     val isToday: Boolean = false,
+    val segments: List<SegmentDto> = emptyList(),
 )
 
 @Serializable
