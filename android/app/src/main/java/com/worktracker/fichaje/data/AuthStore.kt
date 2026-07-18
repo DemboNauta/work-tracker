@@ -25,6 +25,8 @@ class AuthStore(private val context: Context) {
         val BASE_URL = stringPreferencesKey("base_url")
         val TOKEN = stringPreferencesKey("token")
         val WEEK_JSON = stringPreferencesKey("week_json")
+        // Fecha ancla de la semana que muestra el widget (null = semana actual).
+        val WIDGET_ANCHOR = stringPreferencesKey("widget_anchor")
     }
 
     val baseUrl: Flow<String> =
@@ -46,6 +48,15 @@ class AuthStore(private val context: Context) {
     suspend fun setToken(value: String?) {
         context.dataStore.edit {
             if (value == null) it.remove(Keys.TOKEN) else it[Keys.TOKEN] = value
+        }
+    }
+
+    suspend fun widgetAnchorNow(): String? =
+        context.dataStore.data.first()[Keys.WIDGET_ANCHOR]
+
+    suspend fun setWidgetAnchor(date: String?) {
+        context.dataStore.edit {
+            if (date == null) it.remove(Keys.WIDGET_ANCHOR) else it[Keys.WIDGET_ANCHOR] = date
         }
     }
 
