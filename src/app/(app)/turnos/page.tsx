@@ -27,6 +27,15 @@ const MONTHS_SHORT = [
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic",
 ];
+const WEEKDAYS_LONG = [
+  "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo",
+];
+
+function weekdayLabel(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dow = (new Date(y, m - 1, d).getDay() + 6) % 7; // lunes = 0
+  return WEEKDAYS_LONG[dow];
+}
 
 function monthLabel(ym: string): string {
   const [y, m] = ym.split("-").map(Number);
@@ -199,8 +208,9 @@ export default async function TurnosPage({
                 return (
                   <div key={date} className="rounded-md border bg-muted/20 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="tnum text-sm font-bold">
-                        {date.split("-").reverse().join("/")}
+                      <span className="text-sm font-bold">
+                        {weekdayLabel(date)}{" "}
+                        <span className="tnum">{date.split("-").reverse().join("/")}</span>
                       </span>
                       <span className="tnum text-sm text-muted-foreground">
                         {fmtMin(dayTotal)}
