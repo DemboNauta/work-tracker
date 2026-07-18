@@ -6,6 +6,8 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
@@ -36,6 +38,16 @@ class MainActivity : ComponentActivity() {
     private lateinit var repo: Repository
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var lastSyncedToken: String? = null
+
+    // El login es un Server Action (navegación RSC sin recargar documento), así que
+    // onPageFinished no basta: sondeamos la cookie mientras la app está en primer plano.
+    private val handler = Handler(Looper.getMainLooper())
+    private val cookiePoll = object : Runnable {
+        override fun run() {
+            syncWidgetToken()
+            handler.postDelayed(this, 2500)
+        }
+    }
 
     private val fileChooser: ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -80,6 +92,11 @@ class MainActivity : ComponentActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 syncWidgetToken()
             }
+
+            override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
+                // Cambios de historial en la SPA (p.ej. tras el login por Server Action).
+                syncWidgetToken()
+            }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
@@ -119,8 +136,14 @@ class MainActivity : ComponentActivity() {
         webView.saveState(outState)
     }
 
+    override fun onResume() {
+        super.onResume()
+        handler.post(cookiePoll)
+    }
+
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(cookiePoll)
         CookieManager.getInstance().flush()
     }
 
